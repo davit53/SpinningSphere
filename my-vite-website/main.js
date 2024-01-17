@@ -5,7 +5,9 @@
 
 import * as THREE from "three"
 import "./style.css"
+import gsap from "gsap"
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls"
+
 
 //Scene
 const scene = new THREE.Scene()
@@ -20,7 +22,7 @@ const geometry = new THREE.SphereGeometry(3, 64, 64)
 const material = new THREE.MeshStandardMaterial({
 
   color: "#287AB8",
-
+  roughness: 0.5
 
 })
 
@@ -67,6 +69,7 @@ const canvas = document.querySelector(".webgl")
 const renderer = new THREE.WebGLRenderer({canvas})
 //Define how big the canvas is
 renderer.setSize(sizes.width,sizes.height)
+renderer.setPixelRatio(2) //Increases the pixels to make shape smoother
 renderer.render(scene, camera)
 
 /**
@@ -77,6 +80,9 @@ renderer.render(scene, camera)
 const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true //add some damping
 controls.enablePan = false
+controls.enableZoom = false
+controls.autoRotate = true
+controls.autoRotateSpeed = 5
 
 /**
  * Rezising
@@ -100,3 +106,33 @@ const loop = () =>{
   window.requestAnimationFrame(loop)
 }
 loop()
+
+//mouse colour animation
+let mouseDown = false
+let colour = [];
+window.addEventListener("mousedown", () => (mouseDown = true))
+window.addEventListener("mouseup", () => (mouseDown = false)) //turn it to false when we let go of the mouse
+
+window.addEventListener("mousemove", (e) => {
+  if(mouseDown == true) {
+    colour = [
+      //get a value between 0 and 255 for rgb
+      Math.round((e.pageX/sizes.width)*255),
+      Math.round((e.pageY/sizes.height)*255),
+      150
+    ]
+    //update the colour of the material
+    let newColour = new THREE.Color(`rgb(${colour.join(",")})`)
+    new THREE.Color(`rgb(0, 100, 150)`)
+    gsap.to(mesh.material.color, {r: newColour.r, g: newColour.g, b: newColour.b})
+  }
+
+
+})
+
+
+//timeline
+const tl = gsap.timeline({defaults: {duration: 0.9}}) 
+tl.fromTo(mesh.scale, {z:0, x:0, y:0}, {z:1, x: 1, y:1}) //animate something from one poisiton to another
+tl.fromTo("nav", {y: "-100%"}, {y: "0%"})
+tl.fromTo(".title", {opacity: 0}, {opacity: 1})
